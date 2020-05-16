@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Air Quality Index</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+  <style>
+        .centerzz {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 50%;
+        }
+
+  </style>
+</head>
+<body>
+    <table>
+         <tr>  
+            <th>
+            <a href="index.html" title="Start Page" target="_self">Start Page</a>
+            </th>
+            <th>  </th>
+            <th>
+                <a href="divice-chart.html" title="Device Chart" target="_self">Divice Chart</a>
+            </th>
+            <th>  </th>
+                        <th>
+            <a href="login.html" title="Input Data" target="_self">Input Data</a>
+            </th>
+            <!-- <th>
+                <a href="mqtt.html" title="MQTT" target="_self">MQTT</a>
+            </th> -->
+         </tr>
+    </table>
+ 
+<div class="container">
+    <br>
+    <button id="Daily" class="btn btn-success">Daily</button>
+    <button id="Hourly" class="btn btn-success">Hourly</button>
+    <select id="selectNumber"><option>Choose a divice</option></select>
+    <button id="gochart" class="btn btn-success">Go</button>
+    <canvas id="myChart" ></canvas>
+
+    <button id="AQI" class="btn btn-success">AQI</button>
+    <button id="PM25" class="btn btn-success">PM2.5</button>
+    <button id="PM10" class="btn btn-success">PM10</button>
+    <button id="CO2" class="btn btn-success">CO2</button>
+    <button id="TVOC" class="btn btn-success">TVOC</button>
+    <button id="temp" class="btn btn-success">Temperature</button>
+    <button id="humi" class="btn btn-success">Humidity</button>
+    <button id="O3" class="btn btn-success">Ozone</button>
+    <button id="buy" class="btn btn-info">Buy This Data Stream</button>
+</div>
+
+<!-- <img src="VNAQI.jpg" width="50%" height="50%" vspace="100" class="centerzz"> -->
+<script>
+
+    let firsttime = true;
+    let time_grap = 31;
+    let data_y_time_hour = [];
+    let data_y_time_day = [];
+    let data_y_time_hour_chart = [];
+    let data_y_time_day_chart = [];
+    let data_y_axis_co2 = [];
+    let data_y_axis_o3 = [];
+    let data_y_axis_tvoc = [];
+    let data_y_axis_pm25 = [];
+    let data_y_axis_pm10 = [];
+    let data_y_axis_aqi = [];
+    let data_y_axis_temp = [];
+    let data_y_axis_humi = [];   
+  
+    let timestamp;
+    let socket = io();
+    let id_divice_querry;
+    let data_for_grap = [];
+    let data_for_grap48 = [];
+    let time_for_grap = [];
+    let myChart;
+    let Nongdo;
+
+    let array_id = [];
+    let id_data, id_iota;;
+//first time load page
+  
+async function get_total_divice(){
+      const ulr_listdivice = '/divice-connect';
+      const response = await fetch(ulr_listdivice);
+      id_data = await response.json();
+      
+  };
+
+async function array_id_out(){
+    
+    if(firsttime == true)
+    {
+        await get_total_divice();
+        for(var i = 0; i < id_data.length; i ++){
+            array_id.push(id_data[i].id_device);
+        }
+        console.log('arra id ', array_id);
+
+        id_divice_querry= localStorage.getItem("id_frominde");
+        if(!id_divice_querry)
+        {
+            id_divice_querry = array_id[0];
+        }
+        localStorage.clear();  //clear cookie
+        Nongdo = 'Air Quality Index (AQI)';
+        chart(id_divice_querry);
+        /*dropdown menu------------------------------------------------------------*/
+        var select = document.getElementById("selectNumber");
+
+        for(var i = 0; i < array_id.length; i++) {
+            var opt = array_id[i];
+            var el = document.createElement("option");
+            el.textContent = opt;
+            el.value = opt;
+            select.appendChild(el);
+        }
+       
+    }
+     firsttime = false;
+} ;
+
+array_id_out();
+
+ /*dropdown menu-------------------------------------------------------------------*/
+
+
+/* -------------------------------------------------------------------*/
+//button click
+$(() => {    
+        $("#gochart").click( ()=>{
+            time_grap = 24;
+            Nongdo = 'Air Quality Index (AQI)';
+            let iddivice_go = document.getElementById('selectNumber');
+            id_divice_querry = iddivice_go.options[iddivice_go.selectedIndex].value;
+            chart(id_divice_querry)
+        });
+        $("#Daily").click(()=>{
+            time_grap = 31;
+            Nongdo = 'Air Quality Index (AQI)';
+            chart(id_divice_querry)
+        });
+        $("#Hourly").click(()=>{
+            time_grap = 24;
+            Nongdo = 'Air Quality Index (AQI)';
+           chart( id_divice_querry);
+        });    
+        $("#CO2").click(()=>{
+            Nongdo = 'Concentration of CO2 - PPM';
+            chart( id_divice_querry);
+
+        });
+        $("#O3").click(()=>{
+            Nongdo = 'Concentration of O3 - PPB';
+           chart(id_divice_querry);
+        });
+        $("#TVOC").click(()=>{
+            Nongdo = 'Concentration of TVOC - PPB';
+            chart( id_divice_querry );
+           
+        });
+        $("#PM25").click(()=>{
+            Nongdo = 'Concentration of PM25 - ug/m3';
+           chart(id_divice_querry );
+           
+        });
+        $("#PM10").click(()=>{
+            Nongdo = 'Concentration of PM10 - ug/m3';
+            chart(id_divice_querry);
+        });
+        $("#AQI").click(()=>{
+            Nongdo = 'Air Quality Index (AQI)';
+           chart( id_divice_querry );
+        });
+        $("#temp").click(()=>{
+            Nongdo = 'Temperature - Celsius';
+            chart(id_divice_querry);
+        });
+        $("#humi").click(()=>{
+            Nongdo = 'Humidity - %';
+            chart(id_divice_querry);
+        });
+        $("#buy").click(()=>{
+            get_id_iota(id_divice_querry);
+        });
+});
+
+async function get_id_iota(get_id_iota) {
+    const url_iota_id = `/divice-iota/${get_id_iota}`;
+    const response = await fetch(url_iota_id);
+    id_iota = await response.text();
+    location.href = 'https://data-iota.web.app/#/sensor/'+ id_iota;
+}
+
+//tinh gio
+function get_hour_now(hour){
+    let d = new Date();
+    return hour  = d.getHours();
+}
+function get_day_now(today){
+    let d = new Date();
+    return today = d.getDate();
+}
+function get_month_now(month){
+    let d = new Date();
+    return month = d.getMonth();
+}
+function get_year_now(year){
+    let d = new Date();
+    return month = d.getFullYear();
+}
+function caclulator_x_time_label(){
+    let startdate = 0;
+    let startmonth = 0;
+    let starthours = 0;
+    let startyear = 0;
+    if(time_grap == 31){
+         startdate = get_day_now();
+         startmonth = get_month_now();//month tu 0 -11
+         starthours = get_hour_now();//hour 0 -23
+         if(starthours > 21){
+             starthours -= 21;
+         }
+         startyear = get_year_now();
+    }
+    else if(time_grap == 24){
+         startdate = get_day_now()-2;
+         startmonth = get_month_now()+1;//month tu 0 -11
+         if(startmonth == 11)
+            startmonth = 1;
+         starthours = get_hour_now()+1;//hour 0 -23
+         if(starthours == 23)
+            starthours = 1;
+         startyear = get_year_now();	
+    }
+    else
+        console.log('sai gi do');
+
+    let startfulldate =( startmonth + ','+startdate +','+ startyear +' '+ starthours + ':00:00');
+    return timestamp = Math.round(new Date(startfulldate)/1000);
+    console.log("time stamp = ")
+    console.log(timestamp);
+};
+
+//lay thong tin tieu de cho do thi
+function getname_grap(){
+    let tieude;
+    if (time_grap == 31) 
+    {
+        tieude = '30 Days';
+    }
+    else
+        tieude = '48 Hours';
+return tieude;
+}
+//
+function convertTimestamphour(timestamp) {
+    var d = new Date(timestamp * 1000), // Convert the passed timestamp to milliseconds
+       
+        hh = d.getHours(),
+        h = hh,
+        min = ('0' + d.getMinutes()).slice(-2),     // Add leading 0.
+        ampm = 'AM',
+        time;
+
+    if (hh > 12) {
+        h = hh - 12;
+        ampm = 'PM';
+    } else if (hh === 12) {
+        h = 12;
+        ampm = 'PM';
+    } else if (hh == 0) {
+        h = 12;
+    }
+
+    // ie: 2014-03-24, 3:00 PM
+    time =  h + ':' + min + ' ' + ampm;
+    return time;
+}
+function convertTimestampday(timestamp) {
+    var d = new Date(timestamp * 1000), // Convert the passed timestamp to milliseconds
+        yyyy = d.getFullYear(),
+        mm = ('0' + (d.getMonth() + 1)).slice(-2),  // Months are zero based. Add leading 0.
+        dd = ('0' + d.getDate()).slice(-2),         // Add leading 0.
+       
+
+    // ie: 2014-03-24, 3:00 PM
+    time = dd + '-' + mm + '-' + yyyy 
+    return time;
+}
+
+//get datav them thong so la ngay hoac gio de tra cuu database
+async function getMessages(iddivice, timechart){
+        //const ulr_get = `/divice-connect/${id_divice}`;
+        const ulr_get = `/divice-connect/${iddivice},${timechart}`;
+        const response = await fetch(ulr_get);
+        let data = await response.json();
+        //console.log("data out \n",data);
+        let i;
+        data_y_axis_co2 = [];
+        data_y_axis_o3 = [];
+        data_y_axis_tvoc= [];
+        data_y_axis_pm25= [];
+        data_y_axis_pm10= [];
+        data_y_time_day = [];
+        data_y_time_hour = [];
+        data_y_axis_temp = [];
+        data_y_axis_humi = [];
+        data_y_axis_aqi = [];
+        // let tttt = caclulator_x_time_label();
+        // if(isNaN(tttt))
+        //     tttt = 0;
+        // console.log("tttt");
+        // console.log(tttt);
+        for(i = 0; i < data.length; i ++){
+            //if(data[i].time > tttt ){
+                data_y_axis_co2.push(data[i].co2);
+                data_y_axis_o3.push(data[i].o3);
+                data_y_axis_tvoc.push(data[i].tvoc);
+                data_y_axis_pm25.push(data[i].pm25);
+                data_y_axis_pm10.push(data[i].pm10);
+                data_y_axis_temp.push(data[i].temp);
+                data_y_axis_humi.push(data[i].humd);
+                data_y_axis_aqi.push(data[i].aqi);
+                let time_conv_hour = convertTimestamphour(data[i].time);
+                let time_conv_day = convertTimestampday(data[i].time);
+                data_y_time_hour.push(time_conv_hour);
+                data_y_time_day.push(time_conv_day); 
+
+           // }
+        }
+       
+};
+
+
+function chose_data_for_grap(){
+    //data_for_grap48 = [];
+    switch(Nongdo){
+        case 'Concentration of CO2 - PPM':
+            data_for_grap48 = data_y_axis_co2;
+            break;
+        case 'Concentration of O3 - PPB':
+            data_for_grap48 =  data_y_axis_o3;
+            break;
+        case 'Concentration of TVOC - PPB':
+            data_for_grap48 = data_y_axis_tvoc;
+            break;
+        case 'Concentration of PM25 - ug/m3':
+            data_for_grap48 = data_y_axis_pm25;
+            break;
+        case 'Concentration of PM10 - ug/m3':
+            data_for_grap48 =  data_y_axis_pm10;
+            break;
+        case 'Air Quality Index (AQI)':
+            data_for_grap48 = data_y_axis_aqi;
+            break;
+        case 'Temperature - Celsius':
+            data_for_grap48 = data_y_axis_temp;
+            break;
+        case 'Humidity - %':
+            data_for_grap48 = data_y_axis_humi;
+            break;
+    }
+    console.log("data for grap: ")
+    console.log(data_for_grap48);
+
+}
+
+async function chart( id_divice_querry )
+{
+    data_for_grap = [];
+    time_for_grap = [];
+  //  data_y_time_day_chart=[];
+  //  data_y_time_hour_chart = [];
+    await getMessages(id_divice_querry,time_grap);
+    let tieude = getname_grap();
+    chose_data_for_grap();
+    if(time_grap == 31)
+    {
+        if(data_for_grap48.length > 31)
+        {
+            let slice_start = data_for_grap48.length - 31;
+            time_for_grap = data_y_time_day.slice(slice_start);
+            data_for_grap = data_for_grap48.slice(slice_start);
+          
+          //  time_for_grap = data_y_time_day_chart;
+        }
+        else
+        {
+            console.log("day not");
+            console.log(data_y_time_day);
+            data_for_grap = data_for_grap48;
+            time_for_grap = data_y_time_day;
+        }
+      
+    }
+    else{
+        if(data_for_grap48.length > 48)
+        {
+            let slice_start = data_for_grap48.length - 48;
+            data_for_grap = data_for_grap48.slice(slice_start);
+            time_for_grap = data_y_time_hour.slice(slice_start);
+            //time_for_grap = data_y_time_hour_chart;
+        }
+        else
+        {
+            console.log("hour not enoght 2");
+            data_for_grap = data_for_grap48;
+             time_for_grap = data_y_time_hour;
+        }
+
+    }
+   
+    //console.log(data_for_grap);
+    const ctx = document.getElementById('myChart');
+    if(myChart) myChart.destroy();
+     myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: time_for_grap ,
+            datasets: [{
+                label: `${Nongdo} In ${tieude} - Divice ${id_divice_querry}`,
+                data: data_for_grap,
+                backgroundColor:
+                    function(ctx) {
+                    if( Nongdo === 'Air Quality Index (AQI)' )
+                    {
+                        var v = ctx.dataset.data[ctx.dataIndex];
+                        var c = v < 50 ? '#00FF00'
+                            : v < 101 && v > 49 ? '#FFFF00'
+                            : v < 150 && v > 101 ?'#FF9900'
+                            : v < 200 && v > 151 ?'#FF0000'
+                            : v < 300 && v > 201 ?'#9900CC'
+                            : v > 300  ? '#9900CC'
+                            : '#FFFFFF';
+                        //return Color(c).alpha(1 - Math.abs(v / 150)).rgbString();
+                        return Color(c).rgbString();
+                    }
+                    else
+                        return '#33CCCC';
+                },
+                borderColor: 'rgba(0, 99, 132, 0.6)',
+                borderWidth: 0
+            }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]                
+                 }
+            }
+           
+    });
+};
+
+</script>
+</body>
+</html>

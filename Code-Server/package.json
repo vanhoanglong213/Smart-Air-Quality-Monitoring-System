@@ -1,0 +1,36 @@
+{
+  "name": "zeitnow",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node scr/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cachep213/Iotstartup.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cachep213/Iotstartup/issues"
+  },
+  "homepage": "https://github.com/cachep213/Iotstartup#readme",
+  "dependencies": {
+    "@iota/converter": "^1.0.0-beta.23",
+    "@iota/mam": "^0.7.3",
+    "ascoltatori": "^4.3.0",
+    "body-parser": "^1.19.0",
+    "chart.js": "^2.8.0",
+    "express": "^4.17.1",
+    "http": "0.0.0",
+    "mongodb": "^3.3.5",
+    "mongoose": "^5.7.1",
+    "mosca": "^2.8.3",
+    "mqtt": "^3.0.0",
+    "node-fetch": "^2.6.0",
+    "nodemon": "^1.17.2",
+    "socket.io": "^2.3.0"
+  }
+}

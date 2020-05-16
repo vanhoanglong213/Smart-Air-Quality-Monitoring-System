@@ -1,0 +1,66 @@
+<html>
+<head>
+<title>Login - Air Quality Index</title>
+<!-- Include CSS File Here -->
+<link rel="stylesheet" href="style.css"/>
+<!-- Include JS File Here -->
+
+</head>
+<body>
+<div class="container">
+<div class="main">
+<h2>Login</h2>
+<form id="form_id" method="post" name="myform">
+<label>User Name :</label>
+<input type="text" name="username" id="username"/>
+<label>Password :</label>
+<input type="password" name="password" id="password"/>
+<table>
+<tr>
+    <th>
+        <!-- <button id="back" class="btn btn-success" onclick="back()">Back</button> -->
+        <!-- <input type="button" value="Back" id="back" href="index.html"/> -->
+        <!-- <form> -->
+            <input type="button" value="Go back!" onclick="history.back()">
+        <!-- </form> -->
+    </th>
+    <th>
+        <!-- <button id="submit" class="btn btn-success" onclick="validate()">Login</button> -->
+        <input type="button" value="Login" id="submit" onclick="validate()"/>
+    </th>
+</tr>
+</table>
+
+</form>
+<span><b class="note">Note : For this demo use following username and password. </b><br/>
+      <b class="valid">User Name : admin<br/>Password : admin123</b></span>
+</div>
+</div>
+</body>
+<script >
+
+    let attempt = 3; // Variable to count number of attempts.
+    // Below function Executes on click of login button.
+    function validate(){
+        var username = document.getElementById("username").value;
+        var password = document.getElementById("password").value;
+        if ( username == "admin" && password == "admin123"){
+            alert ("Login successfully");
+            window.location = "input-data.html"; // Redirecting to other page.
+            return false;
+        }
+        else{
+            attempt --;// Decrementing by one.
+            alert("You have left "+attempt+" attempt;");
+            // Disabling fields after 3 attempts.
+            if( attempt == 0){
+                document.getElementById("username").disabled = true;
+                document.getElementById("password").disabled = true;
+                document.getElementById("submit").disabled = true;
+            return false;
+            }
+        }
+    }
+
+</script>
+</html>

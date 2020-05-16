@@ -1,0 +1,7 @@
+{
+  "sensorId": "Sensor_envi_01",
+  "secretKey": "9FQEWWROTMTLSVY",
+  "debug": false,
+  "provider": "http://bare01.devnet.iota.cafe:14265",
+  "endpoint": "https://us-central1-data-iota.cloudfunctions.net/newData"
+  }
